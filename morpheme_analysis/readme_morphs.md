@@ -28,5 +28,16 @@ KORE208_FINAL/
 │   └── readme_morphs.md                # 참고 사항
 ```
 
+## Git 및 브랜치 사용법
+1) 원격 저장소 불러오기: git clone https://github.com/hy2zzz/KORE208_final.git
+2) 개발 환경 재현: 가상환경 활성화 후 pip install -r requirements.txt
+3) 브랜치 생성: git checkout -b 브랜치명 (예: morphs-20s)
+4) "NIKL_DIALOGUE_00s" 폴더에 선별한 파일을 이동시킨 후 분석할 연령대에 맞게 폴더명 변경 (예: "NIKL_DIALOGUE_20s")
+5) "analyze_morpheme" 코드의 corpus_dir = "NIKL_DIALOGUE_00s" 부분의 폴더명도 변경
+6) 코드 실행 후, 원본 말뭉치 파일과 결과(엑셀) 파일 add (예: git add morpheme_analysis/NIKL_DIALOGUE_20s/) ※ 코드 파일에 추가 및 변경 사항이 있으면 코드용으로 따로 브랜치를 만들어 주시면 좋을 것 같습니다!
+7) 커밋(변경사항 저장): git commit -m "커밋메시지"
+8) github에 업로드: git push origin 브랜치명
+9) Pull Request: 브랜치의 내용을 main에 합치기
+
 ## 일정
 - 6/1 일요일까지 형태소 분석 및 빈도 분석 후 결과 정리
