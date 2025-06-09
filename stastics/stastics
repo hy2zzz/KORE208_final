@@ -1,0 +1,107 @@
+import os
+import json
+import pandas as pd
+from kiwipiepy import Kiwi
+from scipy.stats import chi2_contingency
+import matplotlib.pyplot as plt
+from matplotlib import font_manager, rc
+
+# 한글 폰트 설정 (Windows Malgun Gothic)
+font_path = "C:/Windows/Fonts/malgun.ttf"
+if os.path.exists(font_path):
+    font_name = font_manager.FontProperties(fname=font_path).get_name()
+    rc('font', family=font_name)
+else:
+    print("한글 폰트 경로를 찾을 수 없습니다.")
+
+kiwi = Kiwi()
+
+CASE_PARTICLES = {"JKS", "JKC", "JKG", "JKO", "JKB", "JKV", "JKQ"}
+AUX_PARTICLES = {"JX"}
+
+def extract_particles_by_kiwi(form):
+    result = kiwi.analyze(form)
+    morphs = result[0][0]
+    particles = []
+    for word, tag, start, end in morphs:
+        if tag in CASE_PARTICLES or tag in AUX_PARTICLES:
+            particles.append(word)
+    return particles
+
+def extract_particles_by_age(base_dir):
+    data = []
+    age_groups = ["10s", "20s", "30s", "40s", "50s", "60s"]
+
+    for age in age_groups:
+        folder_path = os.path.join(base_dir, age)
+        if not os.path.exists(folder_path):
+            print(f"[경고] 폴더 없음: {folder_path}")
+            continue
+
+        for filename in os.listdir(folder_path):
+            if filename.endswith(".json"):
+                json_path = os.path.join(folder_path, filename)
+                try:
+                    with open(json_path, "r", encoding="utf-8") as f:
+                        json_data = json.load(f)
+                        for doc in json_data.get("document", []):
+                            for utt in doc.get("utterance", []):
+                                form = utt.get("form", "").strip()
+                                if form:
+                                    particles = extract_particles_by_kiwi(form)
+                                    for particle in particles:
+                                        data.append({
+                                            "age": age,
+                                            "particle": particle
+                                        })
+                except Exception as e:
+                    print(f"[오류] 파일 읽기 실패: {json_path}\n{e}")
+
+    return pd.DataFrame(data)
+
+def perform_chi2_test(df, save_dir):
+    contingency = pd.crosstab(df['particle'], df['age'])
+    top_particles = df['particle'].value_counts().head(20).index
+    contingency = contingency.loc[top_particles]
+
+    if contingency.empty or contingency.shape[0] < 2 or contingency.shape[1] < 2:
+        print("⚠️ 카이제곱 검정 불가 - 데이터가 충분하지 않습니다.")
+        return None
+
+    chi2, p, dof, expected = chi2_contingency(contingency)
+    print(f"카이제곱 검정 결과: chi2={chi2:.3f}, p-value={p:.3f}, dof={dof}")
+
+    csv_path = os.path.join(save_dir, "kiwi_particles_chi2_result.csv")
+    contingency.to_csv(csv_path, encoding="utf-8-sig")
+    print(f"카이제곱 검정용 빈도표가 '{csv_path}'로 저장되었습니다.")
+
+    return contingency
+
+def plot_bar(contingency, save_dir):
+    if contingency is None or contingency.empty:
+        print("⚠️ 그래프를 그릴 데이터가 없습니다.")
+        return
+
+    ax = contingency.plot(kind='bar', figsize=(12,6))
+    plt.title("연령대별 격조사/보조사 빈도 (상위 20개)")
+    plt.xlabel("조사")
+    plt.ylabel("빈도")
+    plt.xticks(rotation=45, ha="right")
+    plt.tight_layout()
+
+    png_path = os.path.join(save_dir, "kiwi_particles_frequency.png")
+    plt.savefig(png_path)
+    print(f"막대그래프 이미지가 '{png_path}'로 저장되었습니다.")
+    plt.show()
+
+if __name__ == "__main__":
+    base_dir = r"C:\Users\dochi\OneDrive\바탕 화면\25-1학기\KORE208_final\stastics"
+    save_dir = base_dir  # stastics 폴더에 저장
+
+    df = extract_particles_by_age(base_dir)
+    print(f"전체 조사 개수: {len(df)}")
+    if df.empty:
+        print("데이터가 없습니다. 경로와 파일을 확인하세요.")
+    else:
+        contingency = perform_chi2_test(df, save_dir)
+        plot_bar(contingency, save_dir)
