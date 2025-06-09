@@ -2,7 +2,6 @@ import os
 import json
 import pandas as pd
 from kiwipiepy import Kiwi
-from scipy.stats import chi2_contingency
 import matplotlib.pyplot as plt
 from matplotlib import font_manager, rc
 
@@ -20,8 +19,9 @@ CASE_PARTICLES = {"JKS", "JKC", "JKG", "JKO", "JKB", "JKV", "JKQ"}
 AUX_PARTICLES = {"JX"}
 
 def extract_particles_by_kiwi(form):
+    """kiwi 형태소 분석 후 격조사/보조사 추출"""
     result = kiwi.analyze(form)
-    morphs = result[0][0]
+    morphs = result[0][0]  # 상위 분석 결과
     particles = []
     for word, tag, start, end in morphs:
         if tag in CASE_PARTICLES or tag in AUX_PARTICLES:
@@ -59,49 +59,47 @@ def extract_particles_by_age(base_dir):
 
     return pd.DataFrame(data)
 
-def perform_chi2_test(df, save_dir):
+def calc_relative_frequency(df):
+    # 빈도표 생성 (조사 × 연령대)
     contingency = pd.crosstab(df['particle'], df['age'])
+    
+    # 연령대별 합계로 나눠서 상대빈도 계산
+    relative_freq = contingency.div(contingency.sum(axis=0), axis=1)
+    
+    # 상위 20개 조사만 선택 (빈도 기준)
     top_particles = df['particle'].value_counts().head(20).index
-    contingency = contingency.loc[top_particles]
+    relative_freq = relative_freq.loc[top_particles]
 
-    if contingency.empty or contingency.shape[0] < 2 or contingency.shape[1] < 2:
-        print("⚠️ 카이제곱 검정 불가 - 데이터가 충분하지 않습니다.")
-        return None
+    return relative_freq
 
-    chi2, p, dof, expected = chi2_contingency(contingency)
-    print(f"카이제곱 검정 결과: chi2={chi2:.3f}, p-value={p:.3f}, dof={dof}")
+def save_csv_and_plot(df_relative, base_dir):
+    csv_path = os.path.join(base_dir, "particles_relative_freq.csv")
+    png_path = os.path.join(base_dir, "particles_relative_freq.png")
+    
+    # CSV 저장
+    df_relative.to_csv(csv_path, encoding="utf-8-sig")
+    print(f"상대빈도 CSV 저장: {csv_path}")
 
-    csv_path = os.path.join(save_dir, "kiwi_particles_chi2_result.csv")
-    contingency.to_csv(csv_path, encoding="utf-8-sig")
-    print(f"카이제곱 검정용 빈도표가 '{csv_path}'로 저장되었습니다.")
-
-    return contingency
-
-def plot_bar(contingency, save_dir):
-    if contingency is None or contingency.empty:
-        print("⚠️ 그래프를 그릴 데이터가 없습니다.")
-        return
-
-    ax = contingency.plot(kind='bar', figsize=(12,6))
-    plt.title("연령대별 격조사/보조사 빈도 (상위 20개)")
-    plt.xlabel("조사")
-    plt.ylabel("빈도")
-    plt.xticks(rotation=45, ha="right")
+    # 그래프 그리기
+    ax = df_relative.T.plot(kind='bar', figsize=(14,7))
+    plt.title("연령대별 격조사/보조사 상대빈도 (상위 20개)")
+    plt.xlabel("연령대")
+    plt.ylabel("상대빈도")
+    plt.xticks(rotation=0)
+    plt.legend(title="조사", bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.tight_layout()
-
-    png_path = os.path.join(save_dir, "kiwi_particles_frequency.png")
     plt.savefig(png_path)
-    print(f"막대그래프 이미지가 '{png_path}'로 저장되었습니다.")
+    print(f"그래프 PNG 저장: {png_path}")
     plt.show()
 
 if __name__ == "__main__":
     base_dir = r"C:\Users\dochi\OneDrive\바탕 화면\25-1학기\KORE208_final\stastics"
-    save_dir = base_dir  # stastics 폴더에 저장
 
     df = extract_particles_by_age(base_dir)
     print(f"전체 조사 개수: {len(df)}")
+
     if df.empty:
         print("데이터가 없습니다. 경로와 파일을 확인하세요.")
     else:
-        contingency = perform_chi2_test(df, save_dir)
-        plot_bar(contingency, save_dir)
+        df_relative = calc_relative_frequency(df)
+        save_csv_and_plot(df_relative, base_dir)
