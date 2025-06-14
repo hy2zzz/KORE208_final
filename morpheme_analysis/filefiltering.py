@@ -14,12 +14,12 @@ valid_topics = {
     '회사/학교/학창시절'
 }
 
-# 연령대가 모두 동일한 경우만 리턴턴
+# 연령대가 모두 동일한 경우만 리턴
 def get_common_age(speakers):
     ages = {sp.get("age") for sp in speakers if sp.get("age")}
     return list(ages)[0] if len(ages) == 1 else None
 
-# 전체체 파일 하나에서 조건에 맞는 문서만 추출
+# 전체 파일 하나에서 조건에 맞는 문서만 추출
 def extract_valid_docs_from_file(file_path):
     with open(file_path, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -31,7 +31,7 @@ def extract_valid_docs_from_file(file_path):
         speakers = meta.get("speaker", [])
         topic = meta.get("topic", "")
 
-        if len(speakers) < 2:
+        if len(speakers) != 2:
             continue
         if topic not in valid_topics:
             continue
