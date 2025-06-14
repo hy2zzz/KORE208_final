@@ -61,5 +61,7 @@ if __name__ == '__main__':
     scores = cross_val_score(model, X_scaled, y, cv=5, scoring='accuracy')
 
     # 5. 결과 출력
+    print("5-fold: kiwi") # kiwi 또는 kkma
     print(f'교차검증 정확도: {scores}')
     print(f'평균 정확도: {np.mean(scores):.4f}, 표준편차: {np.std(scores):.4f}')
+# %%

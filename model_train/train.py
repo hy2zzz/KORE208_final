@@ -29,10 +29,9 @@ def load_data_from_folders(base_dir):
                 # NaN 값 0으로 대체
                 df = df.fillna(0)
 
-                # 특성만 추출 (연령대나 발화번호 열 제거)
+                # 특성만 추출
                 X = df.drop(columns=['연령대', '화자ID'], errors='ignore')
 
-                # 레이블 수만큼 age_label 복제
                 y = [age_label] * len(X)
 
                 X_all.append(X)
@@ -45,7 +44,7 @@ def load_data_from_folders(base_dir):
 
 # 메인 실행
 if __name__ == '__main__':
-    base_dir = './morph_vectors_data(kiwi)'  # 예시: '10대_형태소_벡터' 폴더들이 있는 상위 디렉토리
+    base_dir = './morph_vectors_data(kiwi)'  # 벡터 파일이 들어 있는 폴더명 (data 또는 edit / (kiwi) 또는 (kkma))
 
     # 1. 데이터 불러오기
     X, y = load_data_from_folders(base_dir)
@@ -68,6 +67,7 @@ if __name__ == '__main__':
 
     # 5. 평가
     y_pred = model.predict(X_test)
+    print("학습-평가(8:2): kiwi") # kiwi 또는 kkma
     print(classification_report(y_test, y_pred))
 
 print(f"전체 샘플 수: {len(X)}")
