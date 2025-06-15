@@ -44,7 +44,7 @@ def load_data_from_folders(base_dir):
 
 # 메인 실행
 if __name__ == '__main__':
-    base_dir = './morph_vectors_data(kiwi)'  # 벡터 파일이 들어 있는 폴더명 (data 또는 edit / (kiwi) 또는 (kkma))
+    base_dir = './morph_vectors_edit(kkma)'  # 벡터 파일이 들어 있는 폴더명 (data 또는 edit / (kiwi) 또는 (kkma))
 
     # 1. 데이터 불러오기
     X, y = load_data_from_folders(base_dir)
@@ -67,14 +67,20 @@ if __name__ == '__main__':
 
     # 5. 평가
     y_pred = model.predict(X_test)
-    print("학습-평가(8:2): kiwi") # kiwi 또는 kkma
+    print("학습-평가(8:2): kkma") # kiwi 또는 kkma
     print(classification_report(y_test, y_pred))
 
 print(f"전체 샘플 수: {len(X)}")
 print(f"학습 샘플 수: {len(X_train)}")
 print(f"테스트 샘플 수: {len(X_test)}")
 
-# %%
+# 한글 폰트 설정 (Windows에서 보통 'Malgun Gothic' 사용)
+plt.rcParams['font.family'] = 'Malgun Gothic'
+
+# 마이너스 깨짐 방지
+plt.rcParams['axes.unicode_minus'] = False
+
+
 # 혼동 행렬 (시각화)
 cm = confusion_matrix(y_test, y_pred, labels=model.classes_)
 sns.heatmap(cm, annot=True, fmt='d', xticklabels=model.classes_, yticklabels=model.classes_, cmap="Blues")
@@ -82,3 +88,5 @@ plt.xlabel("예측한 연령대")
 plt.ylabel("실제 연령대")
 plt.title("혼동 행렬 (Confusion Matrix)")
 plt.show()
+
+# %%
