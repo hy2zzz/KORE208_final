@@ -1,15 +1,27 @@
 # 모델 학습 및 평가
-## 폴더 구조
-- morph_vectors_data(kiwi)/  # 기존 형태소 벡터 파일 및 코드
-- morph_vectors_data(kkma)/  # 기존 형태소 벡터 파일 및 코드
-- morph_vectors_edit(kiwi)/  # 의존명사, 수사, 대명사 삭제 & 관형사, 부사 추가(목적: 간투사 추가)한 형태소 벡터(수정)
-- data_for_model_kiwi(수정).py # 형태소 벡터(수정)을 위한 코드 (kkma 추후 업로드 예정)
-- train.py # 학습-평가(8:2) 방식을 사용한 코드
-- train_kfold.py # 교차검증(5-fold)방식을 사용한 코드
+1. 텍스트 벡터화
+2. 모델 학습 및 평가
+3. 연령대 예측
 
-※
-- 두 코드 모두 "model_train"의 하위 디렉토리 내에 "morph_Vectors_(data 또는 edit)((kiwi/kkma))" 폴더가 존재함을 가정
-- 사용시 base_dir, print('교차 검증:') 부분을 폴더명과 일치하도록 적절히 수정 필요
+## 폴더 구조
+```bash
+model_train/
+├── morph_vectors_data(kiwi)/     # 수정 전 형태소 벡터
+├── morph_vectors_data(kkma)/     
+├── morph_vectors_edit(kiwi)/     # 수정 후 형태소 벡터
+├── morph_vectors_edit(kkma)/
+├── predict_vectors(kiwi)/        # 예측용 형태소 벡터
+├── predict_vectors(kkma)/        
+├── predict_원본파일/              # 예측에 사용한 원본 json 파일    
+├── results/                      # 결과를 모아둔 폴더
+├── 1-1data_for_model_kiwi(수정).py   # 수정된 벡터화 코드
+├── 1-2data_for_model_kkma(수정).py
+├── 2-1train.py                   # 모델 학습 및 평가 코드: 학습-평가(hold-out) 방식 
+├── 2-2train_kfold.py             # 모델 학습 및 평가 코드: k-fold 방식
+├── 3predict.py                    # train_kfold.py + 모델 예측 코드
+├── compare_analyzer.py           # 형태소 분석기 비교용 코드
+...
+```
 
 ## 결과
 
