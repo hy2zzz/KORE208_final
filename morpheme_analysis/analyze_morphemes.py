@@ -68,7 +68,7 @@ def save_results(result_dict, analyzer, output_dir='results'):
 
 # === 실행 ===
 if __name__ == "__main__":
-    corpus_dir = "NIKL_DIALOGUE_00s"  # 폴더명 변경 필요 예: NIKL_DIALOGUE_20s
+    corpus_dir = "./../NIKL_DIALOGUE/NIKL_DIALOGUE_00s"  # 폴더명 변경 필요 예: NIKL_DIALOGUE_20s
     documents = load_all_jsons(corpus_dir)
 
     # Kiwi 분석기 결과
