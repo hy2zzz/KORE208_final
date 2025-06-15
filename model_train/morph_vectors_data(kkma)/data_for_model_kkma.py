@@ -1,5 +1,4 @@
 #%%
-#%%
 import json
 import pandas as pd
 from konlpy.tag import Kkma
@@ -10,10 +9,11 @@ import os
 input_folder = r"C:\Users\mysjh\Documents\corpus\kore_final\original_files_to_analyze\NIKL_DIALOGUE_60s\NIKL_DIALOGUE_60s"
 output_folder = r"C:\Users\mysjh\Documents\corpus\results\morph_vectors_only\60대_형태소_벡터"
 target_pos = {
-    "JKS", "JX", "JKO", "JKG",  # 조사
-    "EF", "EC", "ETN", "ETM",   # 어미
-    "NNB", "NNG", "NP", "NR",  # 명사류
-    "VX", "VV", "VA"           # 용언
+    "JKS", "JX", "JKO", "JKG",
+    "EFN", "EFQ", "EFO", "EFA", "EFI", "EFR",
+    "ECS", "ECD", "ECE", "ETN", "ETD",
+    "NNG", "NR", "NP", "NNB", "NNM",
+    "VXA", "VXV", "VA", "VV"
 }
 
 # 분석기 초기화

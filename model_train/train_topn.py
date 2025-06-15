@@ -1,13 +1,10 @@
 # %%
 import os
 import pandas as pd
-from sklearn.model_selection import train_test_split
+import numpy as np
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-import seaborn as sns
-import matplotlib.pyplot as plt
+from sklearn.model_selection import cross_val_score
 
 def load_data_from_folders(base_dir):
     X_all = []
@@ -43,60 +40,52 @@ def load_data_from_folders(base_dir):
 
     return X_all, y_all
 
+# 상위 n개만 추출
+def select_top_n_features_by_pos(X, top_n=5):
+    from collections import defaultdict
+    pos_dict = defaultdict(list)
+
+    for col in X.columns:
+        if '_' in col:
+            pos = col.split('_', 1)[0]
+            total_freq = X[col].sum()
+            pos_dict[pos].append((col, total_freq))
+
+    selected_columns = []
+    for pos, items in pos_dict.items():
+        sorted_items = sorted(items, key=lambda x: x[1], reverse=True)
+        top_items = sorted_items[:top_n]
+        selected_columns.extend([col for col, _ in top_items])
+
+    return X[selected_columns]
+
+
 # 메인 실행
 if __name__ == '__main__':
-    base_dir = './morph_vectors_data(kiwi)'  # 예시: '10대_형태소_벡터' 폴더들이 있는 상위 디렉토리
+    base_dir = './morph_vectors_topn(kiwi)'  # 예시: '10대_형태소_벡터' 폴더들이 있는 상위 디렉토리
 
     # 1. 데이터 불러오기
     X, y = load_data_from_folders(base_dir)
 
-    # NaN 있는 열 확인
-    print("🚨 NaN 포함 열 (정규화 전):")
-    print(X.isnull().sum()[X.isnull().sum() > 0])
-
     # NaN을 0으로 채움
     X = X.fillna(0)
+
+    # 품사별 상대빈도 상위 N개만 선택
+    X = select_top_n_features_by_pos(X, top_n=10)  # top_n은 원하는 값으로 조정
+
 
     # 2. 정규화
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # NaN 확인 후 학습
-    print("✅ NaN 여부 (정규화 후):", pd.DataFrame(X_scaled).isnull().values.any())
-
-    # 3. 학습-평가 분리
-    X_train, X_test, y_train, y_test = train_test_split(
-        X_scaled, y, test_size=0.2, stratify=y, random_state=42
-    )
-
-    # 4. 로지스틱 회귀 모델 학습
+    # 3. 모델 정의
     model = LogisticRegression(max_iter=1000)
-    model.fit(X_train, y_train)
 
-    # 5. 평가
-    y_pred = model.predict(X_test)
-    print(classification_report(y_test, y_pred))
+    # 4. 교차검증 수행 (예: 5-fold)
+    scores = cross_val_score(model, X_scaled, y, cv=5, scoring='accuracy')
+
+    # 5. 결과 출력
+    print(f'교차검증 정확도: {scores}')
+    print(f'평균 정확도: {np.mean(scores):.4f}, 표준편차: {np.std(scores):.4f}')
 
 print(f"전체 샘플 수: {len(X)}")
-print(f"학습 샘플 수: {len(X_train)}")
-print(f"테스트 샘플 수: {len(X_test)}")
-
-# %%
-
-# 예측 결과와 실제값 비교
-print("정확도:", accuracy_score(y_test, y_pred))
-print("\n=== 분류 리포트 ===")
-print(classification_report(y_test, y_pred))
-
-# 혼동 행렬 (시각화)
-cm = confusion_matrix(y_test, y_pred, labels=model.classes_)
-sns.heatmap(cm, annot=True, fmt='d', xticklabels=model.classes_, yticklabels=model.classes_, cmap="Blues")
-plt.xlabel("예측한 연령대")
-plt.ylabel("실제 연령대")
-plt.title("혼동 행렬 (Confusion Matrix)")
-plt.show()
-
-
-# %% 
-
-# %%
