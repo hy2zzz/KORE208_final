@@ -35,8 +35,8 @@ def analyze_morph_vector_data(root_dir):
     }
 
 # 경로 설정
-kiwi_root = "./morph_vectors_data(kiwi)"
-kkma_root = "./morph_vectors_data(kkma)"
+kiwi_root = "./morph_vectors_edit(kiwi)"
+kkma_root = "./morph_vectors_edit(kkma)"
 
 kiwi_stats = analyze_morph_vector_data(kiwi_root)
 kkma_stats = analyze_morph_vector_data(kkma_root)
@@ -49,3 +49,4 @@ for k, v in kiwi_stats.items():
 print("\n Kkma 분석기 결과")
 for k, v in kkma_stats.items():
     print(f"   {k}: {v}")
+# %%
