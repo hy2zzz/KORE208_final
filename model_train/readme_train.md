@@ -7,19 +7,25 @@
 ```bash
 model_train/
 ├── morph_vectors_data(kiwi)/     # 수정 전 형태소 벡터 및 코드
+│   ├── 00대_형태소_벡터/
+│   │   └── SDRW..._형태소벡터.csv
+│   └── data_for_model_kiwi.py
 ├── morph_vectors_data(kkma)/     
 ├── morph_vectors_edit(kiwi)/     # 수정 후 형태소 벡터
 ├── morph_vectors_edit(kkma)/
 ├── predict_vectors(kiwi)/        # 예측용 형태소 벡터 및 코드
 ├── predict_vectors(kkma)/        
-├── predict_원본파일/              # 예측에 사용한 원본 json 파일    
-├── results/                      # 결과를 모아둔 폴더
+├── predict_원본파일/              # 예측에 사용한 원본 json 파일  
+│   └── SDRW...(00대).json
+├── results/                      # 결과를 모아둔 폴더 (분석기 비교, 혼동행렬, hold-out, k-fold, 연령대 예측 결과)
+├── TF_MORPHEMES_KIWI/            # tf-idf 벡터
 ├── 1-1data_for_model_kiwi(수정).py   # 수정된 벡터화 코드 (결과: morph_vectors_edit)
 ├── 1-2data_for_model_kkma(수정).py
 ├── 2-1train.py                   # 모델 학습 및 평가 코드: 학습-평가(hold-out) 방식 + 혼동행렬 시각화
 ├── 2-2train_kfold.py             # 모델 학습 및 평가 코드: k-fold 방식
 ├── 3predict.py                    # train_kfold.py + 모델 예측 코드
 ├── compare_analyzer.py           # 형태소 분석기 비교용 코드
+└── readme_train.md
 ...
 ```
 

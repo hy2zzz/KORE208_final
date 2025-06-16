@@ -1,4 +1,4 @@
-# %% 연령대별 요건 충족 파일 필터링
+# %% 연령대별 요건 충족 파일 필터링 (참고용 코드, 현재 폴더에선 작동 X)
 import os
 import json
 import pandas as pd

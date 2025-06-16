@@ -91,7 +91,7 @@ pos_dict = {
 
 # 실행
 if __name__ == '__main__':
-    base_dir = "."
+    base_dir = ".."
     folders = [os.path.join(base_dir, f"NIKL_DIALOGUE_{age}s") for age in [10, 20, 30, 40, 50, 60]]
 
     documents = load_jsons_from_multiple_folders(folders)
