@@ -1,0 +1,20 @@
+import pandas as pd
+
+input_path = r'C:\Users\dochi\OneDrive\바탕 화면\25-1학기\KORE208_final\interjection.xlsx'
+output_path = r'C:\Users\dochi\OneDrive\바탕 화면\25-1학기\KORE208_final\filtered_interjection.xlsx'
+
+keywords = ['좀', '그', '그런', '근데', '이제', '그냥', '막', '더', '너무', '다', '이런', '약간', '되게', '어떤', '이', '또', '저', '형태소']
+
+with pd.ExcelFile(input_path) as xls:
+    with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
+        for sheet_name in xls.sheet_names:
+            df = pd.read_excel(xls, sheet_name=sheet_name)
+
+            # A열이 NaN일 수 있으니 str 변환 후 정확히 일치하는지 검사
+            filtered_df = df[df['형태소'].astype(str).isin(keywords)]
+
+            print(f'시트 "{sheet_name}": 원본 행 {len(df)}, 필터링 후 행 {len(filtered_df)}')
+
+            filtered_df.to_excel(writer, sheet_name=sheet_name, index=False)
+
+print("✅ 모든 시트에서 A열이 키워드와 정확히 일치하는 행만 남기고 저장 완료!")
