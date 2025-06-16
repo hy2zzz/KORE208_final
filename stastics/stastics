@@ -1,0 +1,105 @@
+import os
+import json
+import pandas as pd
+from kiwipiepy import Kiwi
+import matplotlib.pyplot as plt
+from matplotlib import font_manager, rc
+
+# 한글 폰트 설정 (Windows Malgun Gothic)
+font_path = "C:/Windows/Fonts/malgun.ttf"
+if os.path.exists(font_path):
+    font_name = font_manager.FontProperties(fname=font_path).get_name()
+    rc('font', family=font_name)
+else:
+    print("한글 폰트 경로를 찾을 수 없습니다.")
+
+kiwi = Kiwi()
+
+CASE_PARTICLES = {"JKS", "JKC", "JKG", "JKO", "JKB", "JKV", "JKQ"}
+AUX_PARTICLES = {"JX"}
+
+def extract_particles_by_kiwi(form):
+    """kiwi 형태소 분석 후 격조사/보조사 추출"""
+    result = kiwi.analyze(form)
+    morphs = result[0][0]  # 상위 분석 결과
+    particles = []
+    for word, tag, start, end in morphs:
+        if tag in CASE_PARTICLES or tag in AUX_PARTICLES:
+            particles.append(word)
+    return particles
+
+def extract_particles_by_age(base_dir):
+    data = []
+    age_groups = ["10s", "20s", "30s", "40s", "50s", "60s"]
+
+    for age in age_groups:
+        folder_path = os.path.join(base_dir, age)
+        if not os.path.exists(folder_path):
+            print(f"[경고] 폴더 없음: {folder_path}")
+            continue
+
+        for filename in os.listdir(folder_path):
+            if filename.endswith(".json"):
+                json_path = os.path.join(folder_path, filename)
+                try:
+                    with open(json_path, "r", encoding="utf-8") as f:
+                        json_data = json.load(f)
+                        for doc in json_data.get("document", []):
+                            for utt in doc.get("utterance", []):
+                                form = utt.get("form", "").strip()
+                                if form:
+                                    particles = extract_particles_by_kiwi(form)
+                                    for particle in particles:
+                                        data.append({
+                                            "age": age,
+                                            "particle": particle
+                                        })
+                except Exception as e:
+                    print(f"[오류] 파일 읽기 실패: {json_path}\n{e}")
+
+    return pd.DataFrame(data)
+
+def calc_relative_frequency(df):
+    # 빈도표 생성 (조사 × 연령대)
+    contingency = pd.crosstab(df['particle'], df['age'])
+    
+    # 연령대별 합계로 나눠서 상대빈도 계산
+    relative_freq = contingency.div(contingency.sum(axis=0), axis=1)
+    
+    # 상위 20개 조사만 선택 (빈도 기준)
+    top_particles = df['particle'].value_counts().head(20).index
+    relative_freq = relative_freq.loc[top_particles]
+
+    return relative_freq
+
+def save_csv_and_plot(df_relative, base_dir):
+    csv_path = os.path.join(base_dir, "particles_relative_freq.csv")
+    png_path = os.path.join(base_dir, "particles_relative_freq.png")
+    
+    # CSV 저장
+    df_relative.to_csv(csv_path, encoding="utf-8-sig")
+    print(f"상대빈도 CSV 저장: {csv_path}")
+
+    # 그래프 그리기
+    ax = df_relative.T.plot(kind='bar', figsize=(14,7))
+    plt.title("연령대별 격조사/보조사 상대빈도 (상위 20개)")
+    plt.xlabel("연령대")
+    plt.ylabel("상대빈도")
+    plt.xticks(rotation=0)
+    plt.legend(title="조사", bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.tight_layout()
+    plt.savefig(png_path)
+    print(f"그래프 PNG 저장: {png_path}")
+    plt.show()
+
+if __name__ == "__main__":
+    base_dir = r"C:\Users\dochi\OneDrive\바탕 화면\25-1학기\KORE208_final\stastics"
+
+    df = extract_particles_by_age(base_dir)
+    print(f"전체 조사 개수: {len(df)}")
+
+    if df.empty:
+        print("데이터가 없습니다. 경로와 파일을 확인하세요.")
+    else:
+        df_relative = calc_relative_frequency(df)
+        save_csv_and_plot(df_relative, base_dir)
